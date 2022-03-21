@@ -72,15 +72,15 @@ def read_file_to_dic(infile, s_dict_pos):
     with open(infile, 'r') as f:
         seq_id = ''
         d_point = {}
-        f.readline()
+
         tmp_list = []
+        f.readline()
         for line in f:
             if len(line.split()) == 8:
                 # print(line.split())
                 # print(line.split()[2])
                 s_point_pos = int(line.split()[2])
                 r_point_pos = int(line.split()[5])
-
                 if s_point_pos >= s_dict_pos[line.split()[7]][0] and s_point_pos <= s_dict_pos[line.split()[7]][1]:
                     seq_id = line.split()[7]
                 elif s_point_pos <= s_dict_pos[line.split()[7]][0] and s_point_pos >= s_dict_pos[line.split()[7]][1]:
@@ -104,7 +104,14 @@ def read_file_to_dic(infile, s_dict_pos):
                         seq_id = line.split()[7]
                     else:
                         seq_id = flag
-                    print(seq_id)
+                print(seq_id)
+                if seq_id in d_point.keys():
+                    d_point[seq_id].append([s_point_pos, r_point_pos])
+                else:
+                    d_point[seq_id] = []
+                    d_point[seq_id].append([s_point_pos, r_point_pos])
+                print(len(d_point))
+    """
                 if tmp_id != seq_id:
                     tmp_list.append([tmp_s_point_pos, tmp_r_point_pos])
                     d_point[tmp_id] = tmp_list
@@ -118,7 +125,7 @@ def read_file_to_dic(infile, s_dict_pos):
             tmp_id = seq_id
             tmp_s_point_pos = tmp_s
             tmp_r_point_pos = tmp_r
-
+    """
     return d_point
 
 
