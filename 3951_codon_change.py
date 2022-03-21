@@ -28,8 +28,8 @@ optional.add_argument('-s', '--sample',
                       metavar='[file]', help='sample-fasta', type=str, default="F:\\3951答疑\\global_align\\fasta\\Hibiscus_sabdariffa_cds.fasta", required=False)
 optional.add_argument('-r', '--ref',
                       metavar='[file]', help='ref-fasta', type=str, default="F:\\3951答疑\\global_align\\fasta\\Hibiscus_cannabinus_cds.fasta", required=False)
-# optional.add_argument('--input',
-# metavar='[input]', help='input', type=str, required=False)
+optional.add_argument(
+    '-f', '--flag',  metavar='[flag]', help='flag', type=str, default='Y', required=False)
 optional.add_argument('-h', '--help', action='help', help='[帮助信息]')
 args = parser.parse_args()
 
@@ -99,12 +99,15 @@ def read_file_to_dic(infile, s_dict_pos):
                               7], s_dict_pos[line.split()[7]])
                     print(
                         'seq_id will be set to {} y/n'.format(line.split()[7]))
-                    flag = input()
-                    if flag == 'y' or flag == 'Y':
+                    if args.flag == 'Y':
                         seq_id = line.split()[7]
                     else:
-                        seq_id = flag
-                print(seq_id)
+                        flag = input()
+                        if flag == 'y' or flag == 'Y':
+                            seq_id = line.split()[7]
+                        else:
+                            seq_id = flag
+                    print(seq_id)
                 if seq_id in d_point.keys():
                     d_point[seq_id].append([s_point_pos, r_point_pos])
                 else:
