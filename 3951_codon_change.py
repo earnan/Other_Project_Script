@@ -113,7 +113,7 @@ def read_file_to_dic(infile, s_dict_pos):
                 else:
                     d_point[seq_id] = []
                     d_point[seq_id].append([s_point_pos, r_point_pos])
-                print(len(d_point))
+    print(len(d_point))
     """
                 if tmp_id != seq_id:
                     tmp_list.append([tmp_s_point_pos, tmp_r_point_pos])
@@ -134,8 +134,8 @@ def read_file_to_dic(infile, s_dict_pos):
 
 (s_dict_seq, s_dict_len, s_dict_pos) = read_fasta_to_dic(args.sample)
 (r_dict_seq, r_dict_len, r_dict_pos) = read_fasta_to_dic(args.ref)
-print(s_dict_pos)
-print(r_dict_pos)
+# print(s_dict_pos)
+# print(r_dict_pos)
 d_point = read_file_to_dic(args.infile, s_dict_pos)
 
 
