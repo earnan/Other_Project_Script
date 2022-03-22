@@ -33,7 +33,6 @@ optional.add_argument(
 optional.add_argument('-h', '--help', action='help', help='[帮助信息]')
 args = parser.parse_args()
 
-
 #################################################################
 # 格式化成2016-03-20 11:45:39形式
 begin_time = time.time()
