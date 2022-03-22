@@ -202,44 +202,48 @@ def judgment_segmentation(number, list):  # 原始顺序,判断属于哪一段
     return s  # s=1-[0]   2-[2] 3-[4]
 
 
-def fuc(point_pos, d_pos, key, seq):
-    s = judgment_segmentation(point_pos, d_pos[key])
+def find_codon(point_pos, d_pos, key, seq):
+    s = judgment_segmentation(point_pos, d_pos[key])  # 处于第几段
+    codon = ''
     if s == 1:
         gene_start = d_pos[key][0]
-        print(gene_start)
+        # print(gene_start)
         n = 1+gene_start-point_pos  # n代表cds中位置
-        print(n)
+        # print(n)
         if n % 3 == 2:
-            print(seq[n-2:n+1])
+            codon = seq[n-2:n+1]
         elif n % 3 == 0:
-            print(seq[n-3:n])
+            codon = seq[n-3:n]
         elif n % 3 == 1:
-            print(seq[n-1:n+2])
+            codon = seq[n-1:n+2]
     elif s == 2:
         gene_start = d_pos[key][2]
-        print(gene_start)
+        # print(gene_start)
         n = (1+abs(d_pos[key][0]-d_pos[key][1]))+1+gene_start-point_pos
-        print(n)
+        # print(n)
         if n % 3 == 2:
-            print(seq[n-2:n+1])
+            codon = seq[n-2:n+1]
         elif n % 3 == 0:
-            print(seq[n-3:n])
+            codon = seq[n-3:n]
         elif n % 3 == 1:
-            print(seq[n-1:n+2])
+            codon = seq[n-1:n+2]
     elif s == 3:
         gene_start = d_pos[key][4]
-        print(gene_start)
+        # print(gene_start)
         n = (1+abs(d_pos[key][0]-d_pos[key][1])) + \
             (1+abs(d_pos[key][2]-d_pos[key][3]))+1+gene_start-point_pos
-        print(n)
+        # print(n)
         if n % 3 == 2:
-            print(seq[n-2:n+1])
+            codon = seq[n-2:n+1]
         elif n % 3 == 0:
-            print(seq[n-3:n])
+            codon = seq[n-3:n]
         elif n % 3 == 1:
-            print(seq[n-1:n+2])
+            codon = seq[n-1:n+2]
+    # print(codon)
+    return codon, n
 
 
+"""
 key = 'rps16'
 s_seq = s_dict_seq[key]
 r_seq = r_dict_seq[key]
@@ -248,8 +252,25 @@ r_point_pos = d_point[key][0][1]
 print(s_point_pos, r_point_pos)
 fuc(s_point_pos, s_d_pos, key, s_seq)
 fuc(r_point_pos, r_d_pos, key, r_seq)
-
+"""
+p = 0
+for key in d_point.keys():
+    p += 1
+    if key == 'ndhB-2':
+        print(key)
+        s_seq = s_dict_seq[key]
+        r_seq = r_dict_seq[key]
+        for i in range(len(d_point[key])):
+            s_point_pos = d_point[key][i][0]  # 第i组snp中s的位点
+            r_point_pos = d_point[key][i][1]
+            print('对应基因组位置{0} {1}'.format(s_point_pos, r_point_pos))
+            s_codon, s_n = find_codon(s_point_pos, s_d_pos, key, s_seq)
+            r_codon, r_n = find_codon(r_point_pos, r_d_pos, key, r_seq)
+            print('样本 cds位置{0}: {1}  参考 cds位置{2}: {3}'.format(
+                s_n, s_codon, r_n, r_codon))
+print(p)
 ###############################################################
+print('\n')
 end_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
 print('End Time : {}'.format(end_time))
 print('Already Run {}s'.format(time.time()-begin_time))
