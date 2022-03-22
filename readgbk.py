@@ -39,6 +39,21 @@ def format_fasta(note, seq, num):
     return note + format_seq + "\n"
 
 
+def ir(s):  # 反向互补
+    re = s[::-1]  # 字符串反向
+    c = ""  # 定义字符串c接收互补序列
+    for i in re:
+        if i == 'A':
+            c = c + 'T'
+        elif i == 'G':
+            c = c + 'C'
+        elif i == 'T':
+            c = c + 'A'
+        elif i == 'C':
+            c = c + 'G'
+    return c
+
+
 def get_cds(gbk_file, f_cds):
     seq_record = SeqIO.read(gbk_file, "genbank")
     # print(seq_record.description.split('mitochondrion')[0])#调试处
@@ -56,32 +71,81 @@ def get_cds(gbk_file, f_cds):
             count += 1
             cds_seq = ""
             tmp_list = []  # 位置列表
+            print(ele.location)
             if len(ele.location.parts) == 3:
                 for ele1 in ele.location.parts:
                     # print(ele1.strand)  # -1 1 1
                     if ele1.strand == (-1):
-                        print('-1')
+                        print('minus')
                         tmp_list.append(re.findall(
-                            r'\d+', str(ele1.start))[0])  # 取位置出来
-                    tmp_list.append(re.findall(
-                        r'\d+', str(ele1.end))[0])  # 取位置出来
-                    # print(tmp_list)
-                    cds_seq += complete_seq[ele1.start:ele1.end]
-            if len(ele.location.parts) == 3:
+                            r'\d+', str(ele1.end))[0])  # 实际起点,从end中取不用+1
+                        tmp_list.append(str(int(re.findall(
+                            r'\d+', str(ele1.start))[0])+1))  # 实际终点,从start取+1
+                        # print(tmp_list)
+                        cds_seq += ir(complete_seq[ele1.start:ele1.end])
+                    elif ele1.strand == (1):
+                        print('plus')
+                        tmp_list.append(str(int(re.findall(
+                            r'\d+', str(ele1.start))[0])+1))  # 实际起点,要+1
+                        tmp_list.append(re.findall(
+                            r'\d+', str(ele1.end))[0])  # 实际终点,不用+1
+                        # 切片没问题,索引从start到end-1,也就是对应start+1到end的序列
+                        cds_seq += complete_seq[ele1.start:ele1.end]
+                print(tmp_list)
                 cds_note = ">" + seq_record.id + \
-                    " [" + str(int(tmp_list[0])+1)+".." + tmp_list[1]+';' + str(int(tmp_list[2])+1)+".." + tmp_list[3]+';' + str(int(tmp_list[4])+1)+".." + tmp_list[5]+"]" + \
+                    " [" + tmp_list[0]+".." + tmp_list[1]+';' + tmp_list[2]+".." + tmp_list[3]+';' + tmp_list[4]+".." + tmp_list[5]+"]" + \
                     " [gene=" + ele.qualifiers['gene'][0] + "]" + \
                     "\n"               # '>'后的格式和已有脚本兼容
+
             elif len(ele.location.parts) == 2:
+                for ele1 in ele.location.parts:
+                    # print(ele1.strand)  # -1 1 1
+                    if ele1.strand == (-1):
+                        print('minus')
+                        tmp_list.append(re.findall(
+                            r'\d+', str(ele1.end))[0])  # 实际起点,从end中取不用+1
+                        tmp_list.append(str(int(re.findall(
+                            r'\d+', str(ele1.start))[0])+1))  # 实际终点,从start取+1
+                        # print(tmp_list)
+                        cds_seq += ir(complete_seq[ele1.start:ele1.end])
+                    elif ele1.strand == (1):
+                        print('plus')
+                        tmp_list.append(str(int(re.findall(
+                            r'\d+', str(ele1.start))[0])+1))  # 实际起点,要+1
+                        tmp_list.append(re.findall(
+                            r'\d+', str(ele1.end))[0])  # 实际终点,不用+1
+                        # 切片没问题,索引从start到end-1,也就是对应start+1到end的序列
+                        cds_seq += complete_seq[ele1.start:ele1.end]
+                print(tmp_list)
                 cds_note = ">" + seq_record.id + \
-                    " [" + str(int(tmp_list[0])+1)+".." + tmp_list[1]+';' + str(int(tmp_list[2])+1)+".." + tmp_list[3]+"]" + \
+                    " [" + tmp_list[0]+".." + tmp_list[1]+';' + tmp_list[2]+".." + tmp_list[3]+"]" + \
                     " [gene=" + ele.qualifiers['gene'][0] + "]" + \
-                    "\n"
+                    "\n"               # '>'后的格式和已有脚本兼容
+
             elif len(ele.location.parts) == 1:
+                for ele1 in ele.location.parts:
+                    # print(ele1.strand)  # -1 1 1
+                    if ele1.strand == (-1):
+                        print('minus')
+                        tmp_list.append(re.findall(
+                            r'\d+', str(ele1.end))[0])  # 实际起点,从end中取不用+1
+                        tmp_list.append(str(int(re.findall(
+                            r'\d+', str(ele1.start))[0])+1))  # 实际终点,从start取+1
+                        # print(tmp_list)
+                        cds_seq += ir(complete_seq[ele1.start:ele1.end])
+                    elif ele1.strand == (1):
+                        print('plus')
+                        tmp_list.append(str(int(re.findall(
+                            r'\d+', str(ele1.start))[0])+1))  # 实际起点,要+1
+                        tmp_list.append(re.findall(
+                            r'\d+', str(ele1.end))[0])  # 实际终点,不用+1
+                        # 切片没问题,索引从start到end-1,也就是对应start+1到end的序列
+                        cds_seq += complete_seq[ele1.start:ele1.end]
+                print(tmp_list)
                 cds_note = ">" + seq_record.id + \
-                    " [" + str(int(tmp_list[0])+1)+".." + tmp_list[1]+"]" + \
+                    " [" + tmp_list[0]+".." + tmp_list[1]+"]" + \
                     " [gene=" + ele.qualifiers['gene'][0] + "]" + \
-                    "\n"
+                    "\n"               # '>'后的格式和已有脚本兼容
             print(cds_note)
             gene_name_count_list.append(ele.qualifiers['gene'][0])
             cds_fasta += format_fasta(cds_note, cds_seq, 70)
