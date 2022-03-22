@@ -55,18 +55,29 @@ def get_cds(gbk_file, f_cds):
             # print(ele.qualifiers)
             cds_seq = ""
             tmp_list = []
-            print(ele.location.parts)
+            # print(len(ele.location.parts))
             for ele1 in ele.location.parts:
                 tmp_list.append(re.findall(
                     r'\d+', str(ele1.start))[0])  # 取位置出来
                 tmp_list.append(re.findall(r'\d+', str(ele1.end))[0])  # 取位置出来
-                print(tmp_list)
+                # print(tmp_list)
                 cds_seq += complete_seq[ele1.start:ele1.end]
-
-            cds_note = ">" + seq_record.id + \
-                " [" + str(int(tmp_list[0])+1)+".." + tmp_list[-1]+"]" + \
-                " [gene=" + ele.qualifiers['gene'][0] + "]" + \
-                "\n"  # '>'后的格式和已有脚本兼容
+            if len(ele.location.parts) == 3:
+                cds_note = ">" + seq_record.id + \
+                    " [" + str(int(tmp_list[0])+1)+".." + tmp_list[1]+';' + str(int(tmp_list[2])+1)+".." + tmp_list[3]+';' + str(int(tmp_list[4])+1)+".." + tmp_list[5]+"]" + \
+                    " [gene=" + ele.qualifiers['gene'][0] + "]" + \
+                    "\n"               # '>'后的格式和已有脚本兼容
+            elif len(ele.location.parts) == 2:
+                cds_note = ">" + seq_record.id + \
+                    " [" + str(int(tmp_list[0])+1)+".." + tmp_list[1]+';' + str(int(tmp_list[2])+1)+".." + tmp_list[3]+"]" + \
+                    " [gene=" + ele.qualifiers['gene'][0] + "]" + \
+                    "\n"
+            elif len(ele.location.parts) == 1:
+                cds_note = ">" + seq_record.id + \
+                    " [" + str(int(tmp_list[0])+1)+".." + tmp_list[1]+"]" + \
+                    " [gene=" + ele.qualifiers['gene'][0] + "]" + \
+                    "\n"
+            print(cds_note)
             gene_name_count_list.append(ele.qualifiers['gene'][0])
             cds_fasta += format_fasta(cds_note, cds_seq, 70)
             # print(cds_note.strip())
