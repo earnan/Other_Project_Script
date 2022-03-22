@@ -57,10 +57,15 @@ def read_fasta_to_dic(infasta):  # 增加位置的字典
                     1].strip(']')  # 基因名
                 if seq_id in dict_seq.keys():
                     l_n.append(0)
-                    seq_id = seq_id+'-'+str(len(l_n))  # 基因名+1
-                l_tmp = line.strip('\n').split()[1].lstrip(
-                    '[').rstrip(']').split(';')  # 位置打散成一个个起点或终点
-                [seq_pos.append(i) for i in l_tmp]
+                    seq_id = seq_id+'-'+str(len(l_n))  # 基因名+1 ycf1-2形式
+                l_tmp = re.findall(
+                    r'\d+', line.strip('\n').split()[1].lstrip(
+                        '[').rstrip(']'))  # .sort()  # 位置打散成一个个起点或终点
+                l_tmp2 = []
+                [l_tmp2.append(int(i)) for i in l_tmp]
+                l_tmp2.sort()
+                # print(l_tmp2)
+                [seq_pos.append(i) for i in l_tmp2]
                 dict_pos[seq_id] = seq_pos
                 dict_seq[seq_id] = ''
                 dict_len[seq_id] = ''
@@ -72,27 +77,39 @@ def read_fasta_to_dic(infasta):  # 增加位置的字典
     return dict_seq, dict_len, dict_pos
 
 
-def read_file_to_dic(infile, s_dict_pos):
+def judgment_section(number, list):
+    s = ''
+    if len(list) == 6:
+        if (number >= list[0] and number <= list[1]) or (number >= list[2] and number <= list[3]) or (number >= list[4] and number <= list[5]):
+            s = 'Y'
+    elif len(list) == 4:
+        if (number >= list[0] and number <= list[1]) or (number >= list[2] and number <= list[3]):
+            s = 'Y'
+    elif len(list) == 2:
+        if (number >= list[0] and number <= list[1]):
+            s = 'Y'
+    else:
+        s = False
+    return s
+
+
+def read_file_to_dic(infile, s_dict_pos):  # 把snp结果读成字典然后与已有字典比较,判断位于哪个基因上
     with open(infile, 'r') as f:
         seq_id = ''
         d_point = {}
-
         tmp_list = []
-        f.readline()
+        f.readline()  # 跳过第一行
         for line in f:
             if len(line.split()) == 8:
                 # print(line.split())
                 # print(line.split()[2])
                 s_point_pos = int(line.split()[2])
                 r_point_pos = int(line.split()[5])
-                if s_point_pos >= s_dict_pos[line.split()[7]][0] and s_point_pos <= s_dict_pos[line.split()[7]][1]:
+                if judgment_section(s_point_pos, s_dict_pos[line.split()[7]]):
                     seq_id = line.split()[7]
-                elif s_point_pos <= s_dict_pos[line.split()[7]][0] and s_point_pos >= s_dict_pos[line.split()[7]][1]:
-                    seq_id = line.split()[7]
-                elif (line.split()[7]+'-2') in s_dict_pos.keys() and (s_point_pos >= s_dict_pos[line.split()[7]+'-2'][0] and s_point_pos <= s_dict_pos[line.split()[7]+'-2'][1]):
+                elif (line.split()[7]+'-2') in s_dict_pos.keys() and (judgment_section(s_point_pos, s_dict_pos[line.split()[7]+'-2'])):
                     seq_id = line.split()[7]+'-2'
-                elif (line.split()[7]+'-2') in s_dict_pos.keys() and (s_point_pos <= s_dict_pos[line.split()[7]+'-2'][0] and s_point_pos >= s_dict_pos[line.split()[7]+'-2'][1]):
-                    seq_id = line.split()[7]+'-2'
+                """
                 else:
                     if (line.split()[7]+'-2') in s_dict_pos.keys():
                         print(s_point_pos, line.split()[
@@ -112,6 +129,8 @@ def read_file_to_dic(infile, s_dict_pos):
                         else:
                             seq_id = flag
                     print(seq_id)
+                """
+                print(seq_id)
                 if seq_id in d_point.keys():
                     d_point[seq_id].append([s_point_pos, r_point_pos])
                 else:
@@ -141,11 +160,9 @@ def read_file_to_dic(infile, s_dict_pos):
 print(s_dict_pos)
 print('\n')
 print(r_dict_pos)
-#d_point = read_file_to_dic(args.infile, s_dict_pos)
 
-
-# print(d_point)
-
+d_point = read_file_to_dic(args.infile, s_dict_pos)
+print(d_point)
 ###############################################################
 end_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
 print('End Time : {}'.format(end_time))
