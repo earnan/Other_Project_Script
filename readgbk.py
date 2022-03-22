@@ -17,6 +17,7 @@ from Bio import SeqIO
 from Bio.Seq import Seq
 import os
 import re
+import time
 
 parser = argparse.ArgumentParser(
     add_help=False, usage='\npython3   mt_from_gbk_get_cds.py\n显示完整位置')
@@ -28,6 +29,13 @@ optional.add_argument('-o', '--output',
                       metavar='[dir]', help='输出的路径', type=str, default="F:/Hibiscus_sabdariffa/out", required=False)
 optional.add_argument('-h', '--help', action='help', help='[帮助信息]')
 args = parser.parse_args()
+
+#################################################################
+# 格式化成2016-03-20 11:45:39形式
+begin_time = time.time()
+start_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+print('Start Time : {}'.format(start_time))
+#################################################################
 
 
 def format_fasta(note, seq, num):
@@ -71,8 +79,18 @@ def get_cds(gbk_file, f_cds):
             count += 1
             cds_seq = ""
             tmp_list = []  # 位置列表
-            print(ele.location)
+            l_strand = []
+            if len(ele.location.parts) >= 2:
+                print('############################')
+                print(ele.location)
+            for ele1 in ele.location.parts:
+                # print(ele1.strand)  # -1 1 1
+                l_strand.append(ele1.strand)
+            if len(l_strand) >= 2:
+                print('############################')
+                print(l_strand)
             if len(ele.location.parts) == 3:
+
                 for ele1 in ele.location.parts:
                     # print(ele1.strand)  # -1 1 1
                     if ele1.strand == (-1):
@@ -149,7 +167,6 @@ def get_cds(gbk_file, f_cds):
             print(cds_note)
             gene_name_count_list.append(ele.qualifiers['gene'][0])
             cds_fasta += format_fasta(cds_note, cds_seq, 70)
-            # print(cds_note.strip())
 
             if (f_cds):  # ele有可能是trna,要确保先找到一个cds后才能退出,所以放上面if的下一级
                 break
@@ -210,3 +227,9 @@ if __name__ == '__main__':
     out_complete_file_obj.close()
     out_log_file_obj.close()
     print('Done')
+
+###############################################################
+end_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+print('End Time : {}'.format(end_time))
+print('Already Run {}s'.format(time.time()-begin_time))
+###############################################################
