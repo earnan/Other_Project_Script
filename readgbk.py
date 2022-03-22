@@ -14,6 +14,7 @@
 ##########################################################
 import argparse
 from Bio import SeqIO
+from Bio.Seq import Seq
 import os
 import re
 
@@ -51,17 +52,21 @@ def get_cds(gbk_file, f_cds):
     gene_name_count_list = []
     for ele in seq_record.features:
         if ele.type == "CDS":
+            # print(ele)
             count += 1
-            # print(ele.qualifiers)
             cds_seq = ""
-            tmp_list = []
-            # print(len(ele.location.parts))
-            for ele1 in ele.location.parts:
-                tmp_list.append(re.findall(
-                    r'\d+', str(ele1.start))[0])  # 取位置出来
-                tmp_list.append(re.findall(r'\d+', str(ele1.end))[0])  # 取位置出来
-                # print(tmp_list)
-                cds_seq += complete_seq[ele1.start:ele1.end]
+            tmp_list = []  # 位置列表
+            if len(ele.location.parts) == 3:
+                for ele1 in ele.location.parts:
+                    # print(ele1.strand)  # -1 1 1
+                    if ele1.strand == (-1):
+                        print('-1')
+                        tmp_list.append(re.findall(
+                            r'\d+', str(ele1.start))[0])  # 取位置出来
+                    tmp_list.append(re.findall(
+                        r'\d+', str(ele1.end))[0])  # 取位置出来
+                    # print(tmp_list)
+                    cds_seq += complete_seq[ele1.start:ele1.end]
             if len(ele.location.parts) == 3:
                 cds_note = ">" + seq_record.id + \
                     " [" + str(int(tmp_list[0])+1)+".." + tmp_list[1]+';' + str(int(tmp_list[2])+1)+".." + tmp_list[3]+';' + str(int(tmp_list[4])+1)+".." + tmp_list[5]+"]" + \
