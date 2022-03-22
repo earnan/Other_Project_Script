@@ -23,40 +23,44 @@ parser = argparse.ArgumentParser(
 optional = parser.add_argument_group('可选项')
 required = parser.add_argument_group('必选项')
 optional.add_argument('-i', '--infile',
-                      metavar='[file]', help='snp-file', type=str, default="F:/3951答疑/global_align/fasta/Hibiscus_sabdariffa_var_altissima_vs_Hibiscus_cannabinus_MK404537.1.snp.xls", required=False)
+                      metavar='[file]', help='snp-file', type=str, default="F:/3951答疑/global_align/archive/Hibiscus_sabdariffa_var_altissima_vs_Hibiscus_cannabinus_MK404537.1.snp.xls", required=False)
 optional.add_argument('-s', '--sample',
-                      metavar='[file]', help='sample-fasta', type=str, default="F:\\3951答疑\\global_align\\fasta\\Hibiscus_sabdariffa_cds.fasta", required=False)
+                      metavar='[file]', help='sample-fasta', type=str, default="F:\\3951答疑\\global_align\\archive\\Hibiscus_sabdariffa_cds.fasta", required=False)
 optional.add_argument('-r', '--ref',
-                      metavar='[file]', help='ref-fasta', type=str, default="F:\\3951答疑\\global_align\\fasta\\Hibiscus_cannabinus_cds.fasta", required=False)
+                      metavar='[file]', help='ref-fasta', type=str, default="F:\\3951答疑\\global_align\\archive\\Hibiscus_cannabinus_cds.fasta", required=False)
 optional.add_argument(
     '-f', '--flag',  metavar='[flag]', help='flag', type=str, default='Y', required=False)
 optional.add_argument('-h', '--help', action='help', help='[帮助信息]')
 args = parser.parse_args()
 
 
+#################################################################
+# 格式化成2016-03-20 11:45:39形式
 begin_time = time.time()
 start_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
 print('Start Time : {}'.format(start_time))
-# 前置脚本 cp_from_gbk_get_cds
+#################################################################
+# 前置脚本 from_gbk_get_cds
 
 
 def read_fasta_to_dic(infasta):  # 增加位置的字典
     with open(infasta, 'r') as f:
-        seq_id = ''
-        dict_seq = {}
-        dict_len = {}
-        dict_pos = {}
+        seq_id = ''  # 基因名
+        dict_seq = {}  # 基因名-序列
+        dict_len = {}  # 基因名-长度
+        dict_pos = {}  # 基因名-位置
         for line in f:
-            seq_pos = []
-            l_n = [0]
+            seq_pos = []  # 某基因对应的位置组成的列表
+            l_n = [0]  # 计算同名基因是第几个
             if line.startswith('>'):
-                seq_id = line.strip('\n').split()[2].split('=')[1].strip(']')
+                seq_id = line.strip('\n').split()[2].split('=')[
+                    1].strip(']')  # 基因名
                 if seq_id in dict_seq.keys():
                     l_n.append(0)
-                    seq_id = seq_id+'-'+str(len(l_n))
+                    seq_id = seq_id+'-'+str(len(l_n))  # 基因名+1
                 l_tmp = line.strip('\n').split()[1].lstrip(
-                    '[').rstrip(']').split('..')
-                [seq_pos.append(int(i)) for i in l_tmp]
+                    '[').rstrip(']').split(';')  # 位置打散成一个个起点或终点
+                [seq_pos.append(i) for i in l_tmp]
                 dict_pos[seq_id] = seq_pos
                 dict_seq[seq_id] = ''
                 dict_len[seq_id] = ''
@@ -134,15 +138,16 @@ def read_file_to_dic(infile, s_dict_pos):
 
 (s_dict_seq, s_dict_len, s_dict_pos) = read_fasta_to_dic(args.sample)
 (r_dict_seq, r_dict_len, r_dict_pos) = read_fasta_to_dic(args.ref)
-# print(s_dict_pos)
-# print(r_dict_pos)
-d_point = read_file_to_dic(args.infile, s_dict_pos)
+print(s_dict_pos)
+print('\n')
+print(r_dict_pos)
+#d_point = read_file_to_dic(args.infile, s_dict_pos)
 
 
-print(d_point)
+# print(d_point)
 
-# print('\n')
+###############################################################
 end_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
 print('End Time : {}'.format(end_time))
 print('Already Run {}s'.format(time.time()-begin_time))
-###########
+###############################################################
