@@ -166,7 +166,7 @@ print(s_d_pos)  # 原始顺序
 # print(r_dict_pos)
 
 d_point = read_file_to_dic(args.infile, s_dict_pos)
-# print(d_point)
+print(d_point)
 # s_dict_seq, s_dict_len, s_dict_pos名字里有-2形式
 # 根据草图修改
 # def find_codon(d_point, s_dict_seq, s_dict_pos):
@@ -202,23 +202,52 @@ def judgment_segmentation(number, list):  # 原始顺序,判断属于哪一段
     return s  # s=1-[0]   2-[2] 3-[4]
 
 
-key = 'ycf2-2'
-seq = s_dict_seq[key]
-s_point_pos = d_point[key][0][0]
-print(s_point_pos)
-s = judgment_segmentation(s_point_pos, s_d_pos[key])
-if s == 1:
-    s_gene_start = s_d_pos[key][0]
-    print(s_gene_start)
-    n = 1+s_gene_start-s_point_pos  # n代表cds中位置
-    print(n)
-    if n % 3 == 2:
-        print(seq[n-2:n+1])
-elif s == 2:
-    s_gene_start = s_d_pos[key][2]
-elif s == 3:
-    s_gene_start = s_d_pos[key][4]
+def fuc(point_pos, d_pos, key, seq):
+    s = judgment_segmentation(point_pos, d_pos[key])
+    if s == 1:
+        gene_start = d_pos[key][0]
+        print(gene_start)
+        n = 1+gene_start-point_pos  # n代表cds中位置
+        print(n)
+        if n % 3 == 2:
+            print(seq[n-2:n+1])
+        elif n % 3 == 0:
+            print(seq[n-3:n])
+        elif n % 3 == 1:
+            print(seq[n-1:n+2])
+    elif s == 2:
+        gene_start = d_pos[key][2]
+        print(gene_start)
+        n = (1+abs(d_pos[key][0]-d_pos[key][1]))+1+gene_start-point_pos
+        print(n)
+        if n % 3 == 2:
+            print(seq[n-2:n+1])
+        elif n % 3 == 0:
+            print(seq[n-3:n])
+        elif n % 3 == 1:
+            print(seq[n-1:n+2])
+    elif s == 3:
+        gene_start = d_pos[key][4]
+        print(gene_start)
+        n = (1+abs(d_pos[key][0]-d_pos[key][1])) + \
+            (1+abs(d_pos[key][2]-d_pos[key][3]))+1+gene_start-point_pos
+        print(n)
+        if n % 3 == 2:
+            print(seq[n-2:n+1])
+        elif n % 3 == 0:
+            print(seq[n-3:n])
+        elif n % 3 == 1:
+            print(seq[n-1:n+2])
 
+
+key = 'rps16'
+s_seq = s_dict_seq[key]
+r_seq = r_dict_seq[key]
+s_point_pos = d_point[key][0][0]  # 第一组snp中s的位点
+r_point_pos = d_point[key][0][1]
+print(s_point_pos, r_point_pos)
+fuc(s_point_pos, s_d_pos, key, s_seq)
+fuc(r_point_pos, r_d_pos, key, r_seq)
 
 ###############################################################
 end_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
