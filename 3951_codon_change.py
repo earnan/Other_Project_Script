@@ -48,8 +48,10 @@ def read_fasta_to_dic(infasta):  # 增加位置的字典
         dict_seq = {}  # 基因名-序列
         dict_len = {}  # 基因名-长度
         dict_pos = {}  # 基因名-位置
+        d_pos = {}
         for line in f:
             seq_pos = []  # 某基因对应的位置组成的列表
+            s_pos = []
             l_n = [0]  # 计算同名基因是第几个
             if line.startswith('>'):
                 seq_id = line.strip('\n').split()[2].split('=')[
@@ -61,7 +63,9 @@ def read_fasta_to_dic(infasta):  # 增加位置的字典
                     r'\d+', line.strip('\n').split()[1].lstrip(
                         '[').rstrip(']'))  # .sort()  # 位置打散成一个个起点或终点
                 l_tmp2 = []
-                [l_tmp2.append(int(i)) for i in l_tmp]
+                [l_tmp2.append(int(i)) for i in l_tmp]  # 全部转换成数字,放进l_tmp2,未排序
+                [s_pos.append(i) for i in l_tmp2]
+                d_pos[seq_id] = s_pos
                 l_tmp2.sort()
                 # print(l_tmp2)
                 [seq_pos.append(i) for i in l_tmp2]
@@ -73,7 +77,7 @@ def read_fasta_to_dic(infasta):  # 增加位置的字典
                 dict_len[seq_id] += str(len(line.strip('\n')))
     print('{0} Item Quantity: {1} {2} {3}'.format(os.path.basename(infasta),
                                                   len(dict_seq), len(dict_len), len(dict_pos)))
-    return dict_seq, dict_len, dict_pos
+    return dict_seq, dict_len, dict_pos, d_pos
 
 
 def judgment_section(number, list):
@@ -129,7 +133,7 @@ def read_file_to_dic(infile, s_dict_pos):  # 把snp结果读成字典然后与�
                             seq_id = flag
                     print(seq_id)
                 """
-                print(seq_id)
+                # print(seq_id)
                 if seq_id in d_point.keys():
                     d_point[seq_id].append([s_point_pos, r_point_pos])
                 else:
@@ -154,14 +158,68 @@ def read_file_to_dic(infile, s_dict_pos):  # 把snp结果读成字典然后与�
     return d_point
 
 
-(s_dict_seq, s_dict_len, s_dict_pos) = read_fasta_to_dic(args.sample)
-(r_dict_seq, r_dict_len, r_dict_pos) = read_fasta_to_dic(args.ref)
-print(s_dict_pos)
+(s_dict_seq, s_dict_len, s_dict_pos, s_d_pos) = read_fasta_to_dic(args.sample)
+(r_dict_seq, r_dict_len, r_dict_pos, r_d_pos) = read_fasta_to_dic(args.ref)
+# print(s_dict_pos)
 print('\n')
-print(r_dict_pos)
+print(s_d_pos)  # 原始顺序
+# print(r_dict_pos)
 
 d_point = read_file_to_dic(args.infile, s_dict_pos)
-print(d_point)
+# print(d_point)
+# s_dict_seq, s_dict_len, s_dict_pos名字里有-2形式
+# 根据草图修改
+# def find_codon(d_point, s_dict_seq, s_dict_pos):
+# for ele in d_point.keys()
+
+
+def judg_n(n, l):  # judg_n(655,[333,1000])
+    if (n >= l[0] and n <= l[1]) or (n <= l[0] and n >= l[1]):
+        s = True
+    else:
+        s = False
+    return s
+
+
+def judgment_segmentation(number, list):  # 原始顺序,判断属于哪一段
+    if len(list) == 6:
+        if judg_n(number, [list[0], list[1]]):
+            s = 1
+        elif judg_n(number, [list[2], list[3]]):
+            s = 2
+        elif judg_n(number, [list[4], list[5]]):
+            s = 3
+    elif len(list) == 4:
+        if judg_n(number, [list[0], list[1]]):
+            s = 1
+        elif judg_n(number, [list[2], list[3]]):
+            s = 2
+    elif len(list) == 2:
+        if judg_n(number, [list[0], list[1]]):
+            s = 1
+    else:
+        s = False
+    return s  # s=1-[0]   2-[2] 3-[4]
+
+
+key = 'ycf2-2'
+seq = s_dict_seq[key]
+s_point_pos = d_point[key][0][0]
+print(s_point_pos)
+s = judgment_segmentation(s_point_pos, s_d_pos[key])
+if s == 1:
+    s_gene_start = s_d_pos[key][0]
+    print(s_gene_start)
+    n = 1+s_gene_start-s_point_pos  # n代表cds中位置
+    print(n)
+    if n % 3 == 2:
+        print(seq[n-2:n+1])
+elif s == 2:
+    s_gene_start = s_d_pos[key][2]
+elif s == 3:
+    s_gene_start = s_d_pos[key][4]
+
+
 ###############################################################
 end_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
 print('End Time : {}'.format(end_time))
