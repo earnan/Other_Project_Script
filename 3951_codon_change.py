@@ -13,6 +13,7 @@
 #
 ##########################################################
 import argparse
+from xml.dom.minidom import Element
 from Bio import SeqIO
 import os
 import re
@@ -28,6 +29,10 @@ optional.add_argument('-s', '--sample',
                       metavar='[file]', help='sample-fasta', type=str, default="F:\\3951答疑\\global_align\\archive\\Hibiscus_sabdariffa_cds.fasta", required=False)
 optional.add_argument('-r', '--ref',
                       metavar='[file]', help='ref-fasta', type=str, default="F:\\3951答疑\\global_align\\archive\\Hibiscus_cannabinus_cds.fasta", required=False)
+optional.add_argument('-snote',
+                      metavar='[file]', help='sample-note', type=str, default="F:\\3951答疑\\global_align\\archive\\Hibiscus_sabdariffa_var_altissima.ann", required=False)
+optional.add_argument('-rnote',
+                      metavar='[file]', help='ref-note', type=str, default="F:\\3951答疑\\global_align\\archive\\Hibiscus_cannabinus.ann", required=False)
 optional.add_argument(
     '-f', '--flag',  metavar='[flag]', help='flag', type=str, default='Y', required=False)
 optional.add_argument('-h', '--help', action='help', help='[帮助信息]')
@@ -100,6 +105,7 @@ def read_file_to_dic(infile, s_dict_pos):  # 把snp结果读成字典然后与�
     with open(infile, 'r') as f:
         seq_id = ''
         d_point = {}
+        d_base = {}
         tmp_list = []
         f.readline()  # 跳过第一行
         for line in f:
@@ -107,7 +113,9 @@ def read_file_to_dic(infile, s_dict_pos):  # 把snp结果读成字典然后与�
                 # print(line.split())
                 # print(line.split()[2])
                 s_point_pos = int(line.split()[2])
+                s_base = line.split()[3]
                 r_point_pos = int(line.split()[5])
+                r_base = line.split()[6]
                 if judgment_section(s_point_pos, s_dict_pos[line.split()[7]]):
                     seq_id = line.split()[7]
                 elif (line.split()[7]+'-2') in s_dict_pos.keys() and (judgment_section(s_point_pos, s_dict_pos[line.split()[7]+'-2'])):
@@ -136,10 +144,13 @@ def read_file_to_dic(infile, s_dict_pos):  # 把snp结果读成字典然后与�
                 # print(seq_id)
                 if seq_id in d_point.keys():
                     d_point[seq_id].append([s_point_pos, r_point_pos])
+                    d_base[seq_id].append([s_base, r_base])
                 else:
                     d_point[seq_id] = []
+                    d_base[seq_id] = []
                     d_point[seq_id].append([s_point_pos, r_point_pos])
-    print(len(d_point))
+                    d_base[seq_id].append([s_base, r_base])
+    print(len(d_point), len(d_base))
     """
                 if tmp_id != seq_id:
                     tmp_list.append([tmp_s_point_pos, tmp_r_point_pos])
@@ -155,18 +166,20 @@ def read_file_to_dic(infile, s_dict_pos):  # 把snp结果读成字典然后与�
             tmp_s_point_pos = tmp_s
             tmp_r_point_pos = tmp_r
     """
-    return d_point
+    return d_point, d_base
 
 
 (s_dict_seq, s_dict_len, s_dict_pos, s_d_pos) = read_fasta_to_dic(args.sample)
 (r_dict_seq, r_dict_len, r_dict_pos, r_d_pos) = read_fasta_to_dic(args.ref)
 # print(s_dict_pos)
-print('\n')
-print(s_d_pos)  # 原始顺序
+# print('\n')
+# print(s_d_pos)  # 原始顺序
 # print(r_dict_pos)
 
-d_point = read_file_to_dic(args.infile, s_dict_pos)
-print(d_point)
+d_point, d_base = read_file_to_dic(args.infile, s_dict_pos)
+# print(d_point)
+# print('\n')
+# print(d_base)
 # s_dict_seq, s_dict_len, s_dict_pos名字里有-2形式
 # 根据草图修改
 # def find_codon(d_point, s_dict_seq, s_dict_pos):
@@ -202,13 +215,32 @@ def judgment_segmentation(number, list):  # 原始顺序,判断属于基因几�
     return s  # s=1-[0]   2-[2] 3-[4]
 
 
+def trans2acid(codon):  # 翻译成氨基酸
+    """
+    The Bacterial and Plant Plastid Code (11):
+    Stnd    AAs = FFLLSSSSYY**CC*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG
+    This    AAs = FFLLSSSSYY**CC*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG
+    Starts      = ---M---------------M------------MMMM---------------M------------
+    Base1       = TTTTTTTTTTTTTTTTCCCCCCCCCCCCCCCCAAAAAAAAAAAAAAAAGGGGGGGGGGGGGGGG
+    Base2       = TTTTCCCCAAAAGGGGTTTTCCCCAAAAGGGGTTTTCCCCAAAAGGGGTTTTCCCCAAAAGGGG
+    Base3       = TCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAG
+    """
+    genetic_code_number = 11
+    acid = ''
+    code_table = {'TTT': 'F', 'TTC': 'F', 'TTA': 'L', 'TTG': 'L', 'TCT': 'S', 'TCC': 'S', 'TCA': 'S', 'TCG': 'S', 'TAT': 'Y', 'TAC': 'Y', 'TAA': '*', 'TAG': '*', 'TGT': 'C', 'TGC': 'C', 'TGA': '*', 'TGG': 'W',
+                  'CTT': 'L', 'CTC': 'L', 'CTA': 'L', 'CTG': 'L', 'CCT': 'P', 'CCC': 'P', 'CCA': 'P', 'CCG': 'P', 'CAT': 'H', 'CAC': 'H', 'CAA': 'Q', 'CAG': 'Q', 'CGT': 'R', 'CGC': 'R', 'CGA': 'R', 'CGG': 'R',
+                  'ATT': 'I', 'ATC': 'I', 'ATA': 'I', 'ATG': 'M', 'ACT': 'T', 'ACC': 'T', 'ACA': 'T', 'ACG': 'T', 'AAT': 'N', 'AAC': 'N', 'AAA': 'K', 'AAG': 'K', 'AGT': 'S', 'AGC': 'S', 'AGA': 'R', 'AGG': 'R',
+                  'GTT': 'V', 'GTC': 'V', 'GTA': 'V', 'GTG': 'V', 'GCT': 'A', 'GCC': 'A', 'GCA': 'A', 'GCG': 'A', 'GAT': 'D', 'GAC': 'D', 'GAA': 'E', 'GAG': 'E', 'GGT': 'G', 'GGC': 'G', 'GGA': 'G', 'GGG': 'G', }
+    acid = code_table[codon]
+    return acid
+
+
 def find_codon(point_pos, d_pos, key, seq):  # 具体查找密码子
     s = judgment_segmentation(point_pos, d_pos[key])  # 处于第几段
     # print(s)
     codon = ''
     if s == 1:
         gene_start = d_pos[key][0]
-        #print(gene_start, point_pos)
         n = 1+abs(gene_start-point_pos)  # n代表cds中位置
         # print(n)
         if n % 3 == 2:
@@ -244,33 +276,54 @@ def find_codon(point_pos, d_pos, key, seq):  # 具体查找密码子
     return codon, n
 
 
-"""
-key = 'rps16'
-s_seq = s_dict_seq[key]
-r_seq = r_dict_seq[key]
-s_point_pos = d_point[key][0][0]  # 第一组snp中s的位点
-r_point_pos = d_point[key][0][1]
-print(s_point_pos, r_point_pos)
-fuc(s_point_pos, s_d_pos, key, s_seq)
-fuc(r_point_pos, r_d_pos, key, r_seq)
-"""
+def read(file):
+    dic = {}
+    with open(file, 'r') as f:
+        for line in f:
+            l_n = [0]
+            if line.startswith('CDS'):
+                seq_id = line.strip('\n').split()[2]  # 基因名
+                if seq_id in dic.keys():
+                    l_n.append(0)
+                    seq_id = seq_id+'-'+str(len(l_n))  # 基因名+1 ycf1-2形式
+                dic[seq_id] = line.strip('\n').split()[1]
+    print(len(dic))
+    return dic
+
+
+r_dic = read(args.rnote)
+s_dic = read(args.snote)
+
 p = 0
 q = 0
+print('Gene:\tPosition:\tRef_base--Sample_base:\tCodon_mutate:\taa_mutate:\tMutate_type:\tRef_location:\tSample_location:\t')
 for key in d_point.keys():  # 循环控制查找
     p += 1
     # if key == 'ndhB-2':
-    print(key)
+    # print(key)
     s_seq = s_dict_seq[key]
     r_seq = r_dict_seq[key]
     for i in range(len(d_point[key])):
         q += 1
         s_point_pos = d_point[key][i][0]  # 第i组snp中s的位点
         r_point_pos = d_point[key][i][1]
-        print('对应基因组位置{0} {1}'.format(s_point_pos, r_point_pos))
+        s_base = d_base[key][i][0]
+        r_base = d_base[key][i][1]
+
         s_codon, s_n = find_codon(s_point_pos, s_d_pos, key, s_seq)
+        s_acid = trans2acid(s_codon)
         r_codon, r_n = find_codon(r_point_pos, r_d_pos, key, r_seq)
-        print('样本 cds位置{0}: {1}  参考 cds位置{2}: {3}'.format(
-            s_n, s_codon, r_n, r_codon))
+        r_acid = trans2acid(r_codon)
+        if s_acid == r_acid:
+            flag = 'Synonymous'
+        else:
+            flag = 'Nonsynonymous'
+        #print('Gene:{0} Position:{1}↔{2} Ref_base↔Sample_base:{3}↔{4} Codon_mutate:{5}↔{6} aa_mutate:{7}↔{8} Mutate_type:{9} Position_Start:{10} Position_End:{11}'.format(key, r_point_pos, s_point_pos, r_base, s_base, r_codon, s_codon, r_acid, s_acid, flag, 0, 0))
+        print(key+'\t'+str(r_point_pos)+'--'+str(s_point_pos)+'\t'+r_base+'--' + s_base + '\t' +
+              r_codon+'--'+s_codon+'\t'+r_acid+'--'+s_acid+'\t'+flag+'\t['+str(r_dic[key])+']\t['+str(s_dic[key])+']')
+        #print('样本 cds位置{0}: {1} {2}  参考 cds位置{3}: {4} {5}'.format(            s_n, s_codon, s_acid, r_n, r_codon, r_acid))
+
+
 print('{0}个基因共计{1}个snp位点'.format(p, q))
 ###############################################################
 print('\n')
