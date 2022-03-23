@@ -80,7 +80,7 @@ def read_fasta_to_dic(infasta):  # 增加位置的字典
     return dict_seq, dict_len, dict_pos, d_pos
 
 
-def judgment_section(number, list):
+def judgment_section(number, list):  # 判断是否位于该基因上
     s = ''
     if len(list) == 6:
         if (number >= list[0] and number <= list[1]) or (number >= list[2] and number <= list[3]) or (number >= list[4] and number <= list[5]):
@@ -173,7 +173,7 @@ print(d_point)
 # for ele in d_point.keys()
 
 
-def judg_n(n, l):  # judg_n(655,[333,1000])
+def judg_n(n, l):  # judg_n(655,[333,1000])#判断是否位于该区间
     if (n >= l[0] and n <= l[1]) or (n <= l[0] and n >= l[1]):
         s = True
     else:
@@ -181,7 +181,7 @@ def judg_n(n, l):  # judg_n(655,[333,1000])
     return s
 
 
-def judgment_segmentation(number, list):  # 原始顺序,判断属于哪一段
+def judgment_segmentation(number, list):  # 原始顺序,判断属于基因几个区间中的哪一段
     if len(list) == 6:
         if judg_n(number, [list[0], list[1]]):
             s = 1
@@ -202,13 +202,14 @@ def judgment_segmentation(number, list):  # 原始顺序,判断属于哪一段
     return s  # s=1-[0]   2-[2] 3-[4]
 
 
-def find_codon(point_pos, d_pos, key, seq):
+def find_codon(point_pos, d_pos, key, seq):  # 具体查找密码子
     s = judgment_segmentation(point_pos, d_pos[key])  # 处于第几段
+    # print(s)
     codon = ''
     if s == 1:
         gene_start = d_pos[key][0]
-        # print(gene_start)
-        n = 1+gene_start-point_pos  # n代表cds中位置
+        #print(gene_start, point_pos)
+        n = 1+abs(gene_start-point_pos)  # n代表cds中位置
         # print(n)
         if n % 3 == 2:
             codon = seq[n-2:n+1]
@@ -219,7 +220,7 @@ def find_codon(point_pos, d_pos, key, seq):
     elif s == 2:
         gene_start = d_pos[key][2]
         # print(gene_start)
-        n = (1+abs(d_pos[key][0]-d_pos[key][1]))+1+gene_start-point_pos
+        n = (1+abs(d_pos[key][0]-d_pos[key][1]))+1+abs(gene_start-point_pos)
         # print(n)
         if n % 3 == 2:
             codon = seq[n-2:n+1]
@@ -231,7 +232,7 @@ def find_codon(point_pos, d_pos, key, seq):
         gene_start = d_pos[key][4]
         # print(gene_start)
         n = (1+abs(d_pos[key][0]-d_pos[key][1])) + \
-            (1+abs(d_pos[key][2]-d_pos[key][3]))+1+gene_start-point_pos
+            (1+abs(d_pos[key][2]-d_pos[key][3]))+1+abs(gene_start-point_pos)
         # print(n)
         if n % 3 == 2:
             codon = seq[n-2:n+1]
@@ -254,21 +255,23 @@ fuc(s_point_pos, s_d_pos, key, s_seq)
 fuc(r_point_pos, r_d_pos, key, r_seq)
 """
 p = 0
-for key in d_point.keys():
+q = 0
+for key in d_point.keys():  # 循环控制查找
     p += 1
-    if key == 'ndhB-2':
-        print(key)
-        s_seq = s_dict_seq[key]
-        r_seq = r_dict_seq[key]
-        for i in range(len(d_point[key])):
-            s_point_pos = d_point[key][i][0]  # 第i组snp中s的位点
-            r_point_pos = d_point[key][i][1]
-            print('对应基因组位置{0} {1}'.format(s_point_pos, r_point_pos))
-            s_codon, s_n = find_codon(s_point_pos, s_d_pos, key, s_seq)
-            r_codon, r_n = find_codon(r_point_pos, r_d_pos, key, r_seq)
-            print('样本 cds位置{0}: {1}  参考 cds位置{2}: {3}'.format(
-                s_n, s_codon, r_n, r_codon))
-print(p)
+    # if key == 'ndhB-2':
+    print(key)
+    s_seq = s_dict_seq[key]
+    r_seq = r_dict_seq[key]
+    for i in range(len(d_point[key])):
+        q += 1
+        s_point_pos = d_point[key][i][0]  # 第i组snp中s的位点
+        r_point_pos = d_point[key][i][1]
+        print('对应基因组位置{0} {1}'.format(s_point_pos, r_point_pos))
+        s_codon, s_n = find_codon(s_point_pos, s_d_pos, key, s_seq)
+        r_codon, r_n = find_codon(r_point_pos, r_d_pos, key, r_seq)
+        print('样本 cds位置{0}: {1}  参考 cds位置{2}: {3}'.format(
+            s_n, s_codon, r_n, r_codon))
+print('{0}个基因共计{1}个snp位点'.format(p, q))
 ###############################################################
 print('\n')
 end_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
