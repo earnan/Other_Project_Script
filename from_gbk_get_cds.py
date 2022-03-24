@@ -2,9 +2,9 @@
 # -*- coding : utf-8 -*-
 ##########################################################
 #
-#       Filename:   mt_from_gbk_get_cds.py
+#       Filename:   from_gbk_get_cds.py
 # Original Author:
-#    Description:   mt_from_gbk_get_cds.py
+#    Description:   from_gbk_get_cds.py
 #        Version:   1.0
 #           Time:   2022/03/09 15:21:51
 #  Last Modified:   2022/03/09 15:21:51
@@ -20,7 +20,7 @@ import re
 import time
 
 parser = argparse.ArgumentParser(
-    add_help=False, usage='\npython3   mt_from_gbk_get_cds.py\n显示完整位置')
+    add_help=False, usage='\npython3   from_gbk_get_cds.py\n显示完整位置')
 optional = parser.add_argument_group('可选项')
 required = parser.add_argument_group('必选项')
 optional.add_argument('-i', '--input',
