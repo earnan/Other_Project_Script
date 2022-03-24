@@ -13,7 +13,6 @@
 #
 ##########################################################
 import argparse
-from xml.dom.minidom import Element
 from Bio import SeqIO
 import os
 import re
@@ -47,41 +46,40 @@ print('Start Time : {}'.format(start_time))
 # 前置脚本 from_gbk_get_cds
 
 
-def read_fasta_to_dic(infasta):  # 增加位置的字典
+def read_fasta_to_dic3(infasta):  # 适用于带详细位置cds的fa文件
     with open(infasta, 'r') as f:
         seq_id = ''  # 基因名
         dict_seq = {}  # 基因名-序列
         dict_len = {}  # 基因名-长度
-        dict_pos = {}  # 基因名-位置
-        d_pos = {}
+        dict_pos = {}  # 基因名-位置,sort()
+        d_pos = {}  # 基因名-位置,未排序
         for line in f:
-            seq_pos = []  # 某基因对应的位置组成的列表
-            s_pos = []
-            l_n = [0]  # 计算同名基因是第几个
+            list_gene_pos = []  # 某基因对应的位置组成的列表 sort
+            l_gene_pos = []
+            list_n = [0]  # 计算同名基因是第几个
             if line.startswith('>'):
                 seq_id = line.strip('\n').split()[2].split('=')[
                     1].strip(']')  # 基因名
                 if seq_id in dict_seq.keys():
-                    l_n.append(0)
-                    seq_id = seq_id+'-'+str(len(l_n))  # 基因名+1 ycf1-2形式
-                l_tmp = re.findall(
+                    list_n.append(0)
+                    seq_id = seq_id+'-'+str(len(list_n))  # 基因名+1 ycf1-2形式
+                list_tmp = re.findall(
                     r'\d+', line.strip('\n').split()[1].lstrip(
-                        '[').rstrip(']'))  # .sort()  # 位置打散成一个个起点或终点
-                l_tmp2 = []
-                [l_tmp2.append(int(i)) for i in l_tmp]  # 全部转换成数字,放进l_tmp2,未排序
-                [s_pos.append(i) for i in l_tmp2]
-                d_pos[seq_id] = s_pos
-                l_tmp2.sort()
-                # print(l_tmp2)
-                [seq_pos.append(i) for i in l_tmp2]
-                dict_pos[seq_id] = seq_pos
+                        '[').rstrip(']'))  # 位置打散成一个个起点或终点
+                [l_gene_pos.append(int(i))
+                 for i in list_tmp]  # 转换成数字,放进l_gene_pos,未排序
+                d_pos[seq_id] = l_gene_pos
+
+                l_gene_pos.sort()
+                [list_gene_pos.append(i) for i in l_gene_pos]
+                dict_pos[seq_id] = list_gene_pos
                 dict_seq[seq_id] = ''
                 dict_len[seq_id] = ''
             else:
                 dict_seq[seq_id] += line.strip('\n')
                 dict_len[seq_id] += str(len(line.strip('\n')))
-    print('{0} Item Quantity: {1} {2} {3}'.format(os.path.basename(infasta),
-                                                  len(dict_seq), len(dict_len), len(dict_pos)))
+    print('{0} Item Total: {1} {2} {3}'.format(os.path.basename(infasta),
+                                               len(dict_seq), len(dict_len), len(dict_pos)))
     return dict_seq, dict_len, dict_pos, d_pos
 
 
@@ -169,8 +167,8 @@ def read_file_to_dic(infile, s_dict_pos):  # 把snp结果读成字典然后与�
     return d_point, d_base
 
 
-(s_dict_seq, s_dict_len, s_dict_pos, s_d_pos) = read_fasta_to_dic(args.sample)
-(r_dict_seq, r_dict_len, r_dict_pos, r_d_pos) = read_fasta_to_dic(args.ref)
+(s_dict_seq, s_dict_len, s_dict_pos, s_d_pos) = read_fasta_to_dic3(args.sample)
+(r_dict_seq, r_dict_len, r_dict_pos, r_d_pos) = read_fasta_to_dic3(args.ref)
 # print(s_dict_pos)
 # print('\n')
 # print(s_d_pos)  # 原始顺序
