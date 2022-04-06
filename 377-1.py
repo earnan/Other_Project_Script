@@ -12,13 +12,10 @@
 #        License:   Copyright (C) 2022
 #
 ##########################################################
-
 import argparse
 import os
 from icecream import ic
 import linecache
-
-from importlib_metadata import version
 
 parser = argparse.ArgumentParser(
     add_help=False, usage='\npython3   筛选共有的ssr')
