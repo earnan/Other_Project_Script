@@ -2,17 +2,23 @@
 # -*- coding : utf-8 -*-
 ##########################################################
 #
-#       Filename: 编程处理模板.py
-#         Author: yuj@genepioneer.cn
-#    Description: sample
-#  Last Modified: 2022-01-12 16:29:29
+#       Filename:   377-1.py
+#         Author:   yujie
+#    Description:   377-1.py
+#        Version:   1.0
+#           Time:   2022/04/06 17:44:42
+#  Last Modified:   2022/04/06 17:44:42
+#        Contact:   hi@arcsona.cn
+#        License:   Copyright (C) 2022
 #
-# Copyright (C) 2021xxxx genepioneer Corporation
 ##########################################################
+
 import argparse
 import os
 from icecream import ic
 import linecache
+
+from importlib_metadata import version
 
 parser = argparse.ArgumentParser(
     add_help=False, usage='\npython3   筛选共有的ssr')
