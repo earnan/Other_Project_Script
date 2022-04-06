@@ -11,35 +11,41 @@
 ##########################################################
 import argparse
 import os
+from icecream import ic
+import linecache
+
 parser = argparse.ArgumentParser(
-    add_help=False, usage='\npython3   筛选交叉物种')
+    add_help=False, usage='\npython3   筛选共有的ssr')
 optional = parser.add_argument_group('可选项')
 required = parser.add_argument_group('必选项')
 optional.add_argument(
-    '-i', '--input', metavar='[dir]', help='运行时在输入目录下', type=str, required=False)
+    '-i', '--indir', metavar='[dir]', help='结果目录', type=str, default='F:/3777/stat', required=False)
 optional.add_argument('-h', '--help', action='help', help='[帮助信息]')
 args = parser.parse_args()
 
 
-# readfasta的输入文件为fa格式,物种很长包含基因的名字
-# 单文件处理
-def readfasta(input_file):  # fa将单文件读取为字典及列表,最终子函数,后续均采用这个
-    seq_id = ''
-    seq_dict = {}
-    species_id_list = []
-    seq = []
-    for line in input_file:
-        if line.startswith('>'):
-            seq_id = line.strip('\n')
-            species_id_list.append(line.replace("\n", "").replace(">", ""))
-            seq_dict[seq_id] = ''
-        else:
-            seq_dict[seq_id] += line.strip('\n')
-    for value in seq_dict.values():
-        seq.append(value)
-    return seq, species_id_list, seq_dict
+def read_file(file):  # fa将单文件读取为字典及列表
+    with open(file, 'r') as f:
+        n = 0
+        for line in f:
+            n += 1
+            if line.startswith('Frequency of identified SSR motifs'):
+                n1 = n
+            elif line.startswith('Frequency of classified repeat types (considering sequence complementary)'):
+                n2 = n
+    for i in range(n1+3, n2-1):
+        line = linecache.getline(file, i).strip()
+        print(line)
+    return 0
 
 
+for file_name in os.listdir(args.indir):
+    print(file_name)
+    file = os.path.join(args.indir, file_name)
+    read_file(file)
+
+
+"""
 # 获取属+种+变种名,取前4个组合为名字
 # 单文件处理
 def get_new_species_id_list(species_id_list):  # 获取新的物种名变种名
@@ -107,6 +113,7 @@ id6 = find(his, its)
 print('以下物种同时具有his,its两条数据{}'.format(id6))
 
 
+"""
 """
 id2 = find(id1, his)
 print('以下物种同时具有alt,atp,his三条数据{}'.format(id2))
