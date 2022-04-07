@@ -2,12 +2,12 @@
 # -*- coding : utf-8 -*-
 ##########################################################
 #
-#       Filename:   377-1.py
+#       Filename:   377-1ssr筛选.py
 #         Author:   yujie
-#    Description:   377-1.py
+#    Description:   377-1ssr筛选.py
 #        Version:   1.0
-#           Time:   2022/04/06 17:44:42
-#  Last Modified:   2022/04/06 17:44:42
+#           Time:   2022/04/07 13:30:27
+#  Last Modified:   2022/04/07 13:30:27
 #        Contact:   hi@arcsona.cn
 #        License:   Copyright (C) 2022
 #
@@ -81,7 +81,7 @@ for i in list0:
 for access_id in list_species:
     for i in list0:
         dict_total[i][access_id] = createVar[access_id][i]
-print(dict_total)
+ic(dict_total)
 
 # 找共有的键
 # dict_Camellia_sinensis_L_O_Kuntze_cv_Xillian_1
