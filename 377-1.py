@@ -62,34 +62,26 @@ def find(list1, list2):  # 寻找俩列表共有元素
 
 # 批量赋值给字典
 createVar = locals()
-list_name_dict = []
-for file_name in os.listdir(args.indir):
-    file = os.path.join(args.indir, file_name)
-    name = 'dict_'+os.path.basename(file).split('.')[0]
-    list_name_dict.append(name)
-    createVar[name] = read_file(file)
+list_species = []
+for file_item in os.listdir(args.indir):
+    file = os.path.join(args.indir, file_item)
+    access_id = os.path.basename(file).split('.')[0]
+    list_species.append(access_id)
+    createVar[access_id] = read_file(file)
 
 # 查找共有的ssr类型
-list0 = dict_Camellia_sinensis_L_O_Kuntze_cv_Xillian_1.keys()
-n = 0
-for file_name in os.listdir(args.indir):
-    n += 1
-    file = os.path.join(args.indir, file_name)
-    name = 'dict_'+os.path.basename(file).split('.')[0]
-    list0 = find(list0, createVar[name].keys())
+list0 = Camellia_sinensis_L_O_Kuntze_cv_Xillian_1.keys()
+for access_id in list_species:
+    list0 = find(list0, createVar[access_id].keys())
 dict_total = {}
 for i in list0:
     dict_total[i] = {}
 
 # 统计共有ssr类型在不同物种中情况
-for file_name in os.listdir(args.indir):
-    n += 1
-    file = os.path.join(args.indir, file_name)
-    name = 'dict_'+os.path.basename(file).split('.')[0]
-    for i in dict_total.keys():
-        dict_total[i][os.path.basename(file).split('.')[
-            0]] = createVar[name][i]
-ic(dict_total)
+for access_id in list_species:
+    for i in list0:
+        dict_total[i][access_id] = createVar[access_id][i]
+print(dict_total)
 
 # 找共有的键
 # dict_Camellia_sinensis_L_O_Kuntze_cv_Xillian_1
