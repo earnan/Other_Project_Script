@@ -28,6 +28,8 @@ args = parser.parse_args()
 
 
 def read_file(file):  # fa将单文件读取为字典及列表
+    dict_ssr_type = {}  # 每个ssr类型为键,值为重复次数及其个数组成的字典
+    list_repeats = []  # 重复次数
     with open(file, 'r') as f:
         n = 0
         for line in f:
@@ -36,31 +38,21 @@ def read_file(file):  # fa将单文件读取为字典及列表
                 n1 = n
             elif line.startswith('Frequency of classified repeat types (considering sequence complementary)'):
                 n2 = n
+
     for i in range(n1+3, n2-1):
         line = linecache.getline(file, i).strip()
-        print(line)
-    return 0
+        if line.startswith('Repeats'):
+            [list_repeats.append(i) for i in line.split('\t')]
+        else:
+            dict_ssr_type[line.split('\t')[0]] = []  # 'a':[]
+            for index, ele in enumerate(line.split('\t')):
+                if index < len(line.split('\t'))-1 and ele.isdigit():
+                    dict_ssr_type[line.split('\t')[0]].append(
+                        int(list_repeats[index]))  # 'TTT': {4: 13, 5: 2}
+    return dict_ssr_type
 
 
-for file_name in os.listdir(args.indir):
-    print(file_name)
-    file = os.path.join(args.indir, file_name)
-    read_file(file)
-
-
-"""
-# 获取属+种+变种名,取前4个组合为名字
-# 单文件处理
-def get_new_species_id_list(species_id_list):  # 获取新的物种名变种名
-    for species_id in species_id_list:
-        content = species_id.split()
-        id = content[1]+'_'+content[2]+'_'+content[3]+'_'+content[4]
-        # print(id)
-        new_species_id_list.append(id)
-    return new_species_id_list
-
-
-def find(list1, list2):  # 寻找列表共有元素
+def find(list1, list2):  # 寻找俩列表共有元素
     tmp = []
     for x in list1:
         if x in list2:
@@ -68,59 +60,47 @@ def find(list1, list2):  # 寻找列表共有元素
     return tmp
 
 
-i = 0
-createVar = locals()  # 动态生成变量
-for item in os.listdir(args.input):
-    print(item)
-    if os.path.isfile(os.path.abspath(item)):
-        i += 1
-        # print(item)
-        input_file = open(item, 'r')
-        (seq, species_id_list, seq_dict) = readfasta(input_file)
-        # print('原个数{}'.format(len(species_id_list)))
-        new_species_id_list = []  # 清零
-        new_species_id_list = get_new_species_id_list(species_id_list)
-        # print('新个数{}'.format(len(new_species_id_list)))
-        #createVar['species_id_list_' +item.replace('.txt', '').replace('-', '_')] = new_species_id_list
-        createVar['species_id_list_' + str(i)] = new_species_id_list
-        print(i)
-    if i == 4:
-        break
+# 批量赋值给字典
+createVar = locals()
+list_name_dict = []
+for file_name in os.listdir(args.indir):
+    file = os.path.join(args.indir, file_name)
+    name = 'dict_'+os.path.basename(file).split('.')[0]
+    list_name_dict.append(name)
+    createVar[name] = read_file(file)
 
-alt = createVar['species_id_list_1']  # alt
-print(len(alt))
-atp = createVar['species_id_list_2']  # atp
-print(len(atp))
-his = createVar['species_id_list_3']  # his
-print(len(his))
-its = createVar['species_id_list_4']  # its
-print(len(its))
+# 查找共有的ssr类型
+list0 = dict_Camellia_sinensis_L_O_Kuntze_cv_Xillian_1.keys()
+n = 0
+for file_name in os.listdir(args.indir):
+    n += 1
+    file = os.path.join(args.indir, file_name)
+    name = 'dict_'+os.path.basename(file).split('.')[0]
+    list0 = find(list0, createVar[name].keys())
+dict_total = {}
+for i in list0:
+    dict_total[i] = {}
 
+# 统计共有ssr类型在不同物种中情况
+for file_name in os.listdir(args.indir):
+    n += 1
+    file = os.path.join(args.indir, file_name)
+    name = 'dict_'+os.path.basename(file).split('.')[0]
+    for i in dict_total.keys():
+        dict_total[i][os.path.basename(file).split('.')[
+            0]] = createVar[name][i]
+ic(dict_total)
 
-id1 = find(alt, atp)
-print('以下物种同时具有alt,atp两条数据{}'.format(id1))
-
-id2 = find(alt, his)
-print('以下物种同时具有alt,his两条数据{}'.format(id2))
-
-id3 = find(alt, its)
-print('以下物种同时具有alt,its两条数据{}'.format(id3))
-
-id4 = find(atp, his)
-print('以下物种同时具有atp,his两条数据{}'.format(id4))
-
-id5 = find(alt, its)
-print('以下物种同时具有alt,its两条数据{}'.format(id5))
-
-id6 = find(his, its)
-print('以下物种同时具有his,its两条数据{}'.format(id6))
-
-
-"""
-"""
-id2 = find(id1, his)
-print('以下物种同时具有alt,atp,his三条数据{}'.format(id2))
-
-id3 = find(id2, its)
-print('同时具有4项基因数据的菌株为{}'.format(id3))
-"""
+# 找共有的键
+# dict_Camellia_sinensis_L_O_Kuntze_cv_Xillian_1
+# dict_KF156839
+# dict_KF562708
+# dict_KJ806280
+# dict_MH019307
+# dict_MH394406
+# dict_MH394410
+# dict_MN086819
+# dict_MT773375
+# dict_MW148820
+# dict_MZ043860
+# 再找里面不同的重复次数
