@@ -97,7 +97,7 @@ for access_id in list_species:
     tmp_list = set(createVar[access_id].keys())-set(list0)
     for i in tmp_list:
         dict_total_unique[access_id][i] = createVar[access_id][i]
-ic(dict_total_unique)
+# ic(dict_total_unique)
 # TODOdict_total_unique准备写入文件
 
 dict_total_share = {}  # 共有ssr
@@ -110,7 +110,7 @@ for i in list0:
 for access_id in list_species:
     for i in list0:
         dict_total_share[i][access_id] = createVar[access_id][i]
-
+# ic(dict_total_share)
 #分################################################################################
 
 # 进一步统计
@@ -123,6 +123,11 @@ for i in list0:  # ssr类型
         list1 = find(list1, dict_total_share[i][access_id])
     dict_total_share_same[i] = list1
 
-    # for access_id in list_species:
+# TODOdict_total_share_same写入文件
+    for access_id in list_species:  # 物种
+        tmp = set(dict_total_share[i][access_id])-set(list1)
+        dict_total_share_unique[i][access_id] = list(tmp)
+
 
 ic(dict_total_share_same)
+ic(dict_total_share_unique)
