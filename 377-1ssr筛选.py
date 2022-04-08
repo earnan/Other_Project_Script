@@ -106,8 +106,20 @@ for access_id in list_species:
     for i in tmp_list:
         dict_total_unique[access_id][i] = createVar[access_id][i]
 
-# list_species
-ic(dict_total_unique)
+with open(os.path.join(args.outdir, '1.txt'), 'w') as f:
+    list1 = []
+    for i in list_species:
+        tmp = dict_total_unique[i].keys()
+        list1 = merge(list1, tmp)
+    list1.sort()
+    [f.write('\t'+j) for j in list1]
+    f.write('\n')
+    for i in list_species:
+        f.write(i)
+        f.write('\n')
+
+
+# ic(dict_total_unique)
 # TODOdict_total_unique准备写入文件
 
 dict_total_share = {}  # 共有ssr
@@ -120,7 +132,7 @@ for i in list0:
 for access_id in list_species:
     for i in list0:
         dict_total_share[i][access_id] = createVar[access_id][i]
-ic(dict_total_share)
+# ic(dict_total_share)
 # TODO
 #分################################################################################
 
@@ -138,7 +150,7 @@ for i in list0:  # ssr类型
         tmp = set(dict_total_share[i][access_id])-set(list1)
         dict_total_share_unique[i][access_id] = list(tmp)
 
-ic(dict_total_share_same)
-ic(dict_total_share_unique)
+# ic(dict_total_share_same)
+# ic(dict_total_share_unique)
 # TODOdict_total_share_same写入文件
 # TODOdict_total_share_unique写入文件
