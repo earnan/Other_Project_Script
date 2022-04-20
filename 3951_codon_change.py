@@ -83,7 +83,7 @@ def read_fasta_to_dic3(infasta):  # 适用于带详细位置cds的fa文件
     return dict_seq, dict_len, dict_pos, d_pos
 
 
-def judgment_section(number, list):  # 判断是否位于该基因上
+def judgment_section(number, list):  # 判断是否位于该基因上#存在进一步优化空间
     s = ''
     if len(list) == 6:
         if (number >= list[0] and number <= list[1]) or (number >= list[2] and number <= list[3]) or (number >= list[4] and number <= list[5]):
@@ -99,7 +99,7 @@ def judgment_section(number, list):  # 判断是否位于该基因上
     return s
 
 
-def read_file_to_dic(infile, s_dict_pos):  # 把snp结果读成字典然后与已有字典比较,判断位于哪个基因上
+def read_file_to_dic(infile, s_dict_pos):  # 把snp结果读成字典然后与已有字典比较,判断位于哪个基因上,调用了上述子函数
     with open(infile, 'r') as f:
         seq_id = ''
         d_point = {}
