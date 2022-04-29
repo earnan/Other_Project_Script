@@ -44,13 +44,7 @@ def get_judge_from_str(abs_path):  # 判断是目录还是单文件,对每个文
 
     if os.path.isfile(abs_path):
         file = abs_path
-        fa = open(file, 'r')
-        line = fa.readlines()[0]
-        fa.close()
-        if line.startswith('>'):
-            print(file+' ok')
-        else:
-            formatting(file)
+        formatting(file)
 
     elif os.path.isdir(abs_path):
         print('目录')
