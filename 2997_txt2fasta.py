@@ -27,7 +27,7 @@ args = parser.parse_args()
 
 
 def formatting(file):  # 绝对路径
-    with open(file, 'r+') as f:  # 可读可写模式
+    with open(file, 'r') as f:
         seq_id = ''
         seq_str = ''
         for line in f:
@@ -35,6 +35,7 @@ def formatting(file):  # 绝对路径
                 seq_id = line.strip('\n')
             else:
                 seq_str += line.strip('\n')
+    with open(file, 'w') as f:
         f.write(seq_id+'\n'+seq_str+'\n')
     return 0
 
