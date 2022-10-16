@@ -6,15 +6,15 @@
 #         Author:   yujie
 #    Description:   seq_with_sets_format2nex.py
 #        Version:   1.0
-#           Time:   2022/08/29 15:59:53
-#  Last Modified:   2022/08/29 15:59:53
+#           Time:   2022/08/03 10:46:27
+#  Last Modified:   2022/09/07 15:59:53
 #        Contact:   hi@arcsona.cn
-#        License:   Copyright (C) 2022
+#        License:   GNU General Public License v3.0
 #
 ##########################################################
 from Bio import SeqIO
 from Bio.Seq import Seq
-from icecream import ic
+#from icecream import ic
 import argparse
 import linecache
 import os
@@ -35,17 +35,18 @@ parser = argparse.ArgumentParser(
 #         Author:   yujie\n\
 #    Description:   seq_with_sets_format2nex.py\n\
 #        Version:   1.0\n\
-#           Time:   2022/08/29 16:00:13\n\
-#  Last Modified:   2022/08/29 16:00:13\n\
+#           Time:   2022/08/03 10:46:27\n\
+#  Last Modified:   2022/09/07 15:59:53\n\
 #        Contact:   hi@arcsona.cn\n\
-#        License:   Copyright (C) 2022\n\
+#        License:   GNU General Public License v3.0\n\
 #\n\
 ##########################################################\n\
 \n\
 \npython3   seq_with_sets_format2nex.py\n\
 Function:\n\
-1.Geneflow -gf -i [aln.fa] -g [group_list] -o [nex] \n\
-2.Mismatch_distribution -mm -i [all.aln.fa] -g [group_list] -o [nex] \n\
+1.Geneflow: -gf -i [aln.fa] -g [group_list] -o [nex] \n\
+2.Mismatch_distribution: -mm -i [all.aln.fa] -g [group_list] -o [nex] \n\
+3.structure: -str -i [aln fa ]  -g [group list ]  -o1 [new aln fa ]   -o2 [new group list ] \n\
 \n\
 ##########################################################\n\
 Path: E:\OneDrive\jshy信息部\Script\Other_Project_Script\GP-20220722-4689\seq_with_sets_format2nex.py\n\
@@ -59,20 +60,29 @@ required = parser.add_argument_group('必选项')
 optional.add_argument(
     '-i', '--inaln', metavar='[aln.fa]', help='aln.fa', type=str, default='F:/4689/21_sets_seq.aln.fas', required=False)
 optional.add_argument(
-    '-g', '--grouplist', metavar='[group.list]', help='分组文件,不通用', type=str, default='F:/4689/group_mapping.txt', required=False)
+    '-g', '--grouplist', metavar='[group.list]', help='分组文件,老师提供的,不通用', type=str, default='F:/4689/group_mapping.txt', required=False)
 optional.add_argument(
     '-o', '--outnex', metavar='[out nex]', help='outfile', type=str, default='F:/4689/21_sets_seq.nex', required=False)
+optional.add_argument(
+    '-o1', '--outfile1', metavar='[new_aln_fa]', help='样品按名字排序后的比对文件', type=str, default='F:\\4689\\result\\3_Structure\\sortesd_21_sets_seq.aln.fas', required=False)
+optional.add_argument(
+    '-o2', '--outfile2', metavar='[new group list]', help='生成文件,第一列样品名  第二列分组名', type=str, default='F:\\Project\\4689\\result\\1_gene_flow\\group_list.txt', required=False)
 optional.add_argument('-gf', '--geneflow', help='默认否,运行则-gf',
                       action='store_true', required=False)
 optional.add_argument('-mm', '--mismatch', help='默认否,运行则-mm',
                       action='store_true', required=False)
+optional.add_argument('-str', '--structure', help='默认否,运行则-str',
+                      action='store_true', required=False)
 optional.add_argument('-h', '--help', action='help', help='[help_information]')
 args = parser.parse_args()
+
 
 # 文件路径
 aln_fa_file_path = args.inaln  # i
 group_list_file_path = args.grouplist  # g
 nex_out_path = args.outnex  # o
+out_new_aln_fa = args.outfile1  # o1
+new_group_list_path = args.outfile2  # o2
 
 
 def format_fasta(seq, num):  # 格式化字符串
@@ -84,7 +94,7 @@ def format_fasta(seq, num):  # 格式化字符串
     return format_seq
 
 
-# ##################################################################################nex的CHARACTERS部分,读取比对文件,返回formatted_accession_seq_dict
+# ####################################################################################################################################nex的CHARACTERS部分,读取比对文件,返回formatted_accession_seq_dict
 def get_formatted_seq_dict(aln_fa_file_path):
     with open(aln_fa_file_path, 'r') as fa_handle:
         # CHARACTERS部分,nex存放具体序列的部分,在中间
@@ -122,7 +132,8 @@ def get_formatted_seq_dict(aln_fa_file_path):
     return formatted_accession_seq_dict, int_ntax, str_seq_len
 
 
-# ####################################################1.geneflow子函数,对每组字符串进行解析,获得该组所有序列号
+# ##################################################################################################################################1.geneflow子函数
+# 对每组字符串进行解析,获得该组所有序列号
 def geneflow_get_all_accession(tmp_flg, group_dict, tmp_count):
     tmp_str = group_dict[tmp_flg][0]  # NC1-NC5,MK1,MW3 原始信息
     tmp_number = group_dict[tmp_flg][1]  # 22 25  24  个数
@@ -149,6 +160,7 @@ def geneflow_get_all_accession(tmp_flg, group_dict, tmp_count):
     return tmp_count, list_all  # 完全没涉及到括号问题
 
 
+# 这个子函数,只适用于4689项目 老师提供的分组文件
 def geneflow_get_group_sets_dict(group_list_file_path):
     with open(group_list_file_path, 'r', encoding='utf-8') as group_handle:
         group_dict = {}  # 初始
@@ -178,7 +190,8 @@ def geneflow_get_group_sets_dict(group_list_file_path):
     return group_accession_dict, group_taxset_dict
 
 
-# #################################################2.错配分布Mismatch distribution子函数
+# ########################################################################################################################2.错配分布Mismatch distribution子函数
+# 这个子函数,只适用于4689项目 老师提供的分组文件
 def mismatch_get_group_sets_dict(group_list_file_path):
     with open(group_list_file_path, 'r', encoding='utf-8') as group_handle:
         group_accession_dict, group_taxset_dict = {}, {}
@@ -202,7 +215,7 @@ def mismatch_get_group_sets_dict(group_list_file_path):
     return group_accession_dict, group_taxset_dict, int_ntax_group
 
 
-# ################################################################################输出的nex里需要用的变量,返回这几个str前缀变量,然后写入
+# #####################################################################################################################################################输出的nex里需要用的变量,返回这几个str前缀变量,然后写入
 if args.geneflow and args.inaln and args.grouplist and args.outnex:  # 基因流
     formatted_accession_seq_dict, int_ntax, str_seq_len = get_formatted_seq_dict(
         aln_fa_file_path)
@@ -245,49 +258,93 @@ elif args.mismatch and args.inaln and args.grouplist and args.outnex:  # 错配�
     for k, v in group_taxset_dict.items():
         str_sets += '   TaxSet {} = {};\n'.format(k, v)
 
+if args.inaln and args.grouplist and args.outnex:
+    s = "#NEXUS\n\
+    [File generated by DnaSP Ver. 6.12.03, from file: {0}    Aug 1, 2022]\n\
+    \n\
+    BEGIN TAXA;\n\
+    DIMENSIONS NTAX={1};\n\
+    TAXLABELS\n\
+    {2};\n\
+    END;\n\
+    \n\
+    BEGIN CHARACTERS;\n\
+    DIMENSIONS NCHAR={3};\n\
+    FORMAT DATATYPE=DNA  MISSING=? GAP=- ;\n\
+    MATRIX\n\
+    {4}\n\
+    ;\n\
+    END;\n\
+    \n\
+    BEGIN SETS;\n\
+    {5}\
+    END;\n\
+    \n\
+    BEGIN CODONS;\n\
+    CODESET * UNTITLED = Universal: all;\n\
+    END;\n\
+    \n\
+    BEGIN CODONUSAGE;\n\
+    END;\n\
+    \n\
+    BEGIN DnaSP;\n\
+    Genome= Haploid;\n\
+    ChromosomalLocation= Mitochondrial;\n\
+    VariationType= DNA_Seq_Pol;\n\
+    Species= ---;\n\
+    ChromosomeName= ---;\n\
+    GenomicPosition= 1;\n\
+    GenomicAssembly= ---;\n\
+    DnaSPversion= Ver. 6.12.03;\n\
+    END;\n\
+    ".format(aln_fa_file_path, str_ntax, str_taxlabels, str_seq_len, str_matrix.rstrip(), str_sets)
 
-s = "#NEXUS\n\
-[File generated by DnaSP Ver. 6.12.03, from file: {0}    Aug 1, 2022]\n\
-\n\
-BEGIN TAXA;\n\
-DIMENSIONS NTAX={1};\n\
-TAXLABELS\n\
-{2};\n\
-END;\n\
-\n\
-BEGIN CHARACTERS;\n\
-DIMENSIONS NCHAR={3};\n\
-FORMAT DATATYPE=DNA  MISSING=? GAP=- ;\n\
-MATRIX\n\
-{4}\n\
-;\n\
-END;\n\
-\n\
-BEGIN SETS;\n\
-{5}\
-END;\n\
-\n\
-BEGIN CODONS;\n\
-   CODESET * UNTITLED = Universal: all;\n\
-END;\n\
-\n\
-BEGIN CODONUSAGE;\n\
-END;\n\
-\n\
-BEGIN DnaSP;\n\
-   Genome= Haploid;\n\
-   ChromosomalLocation= Mitochondrial;\n\
-   VariationType= DNA_Seq_Pol;\n\
-   Species= ---;\n\
-   ChromosomeName= ---;\n\
-   GenomicPosition= 1;\n\
-   GenomicAssembly= ---;\n\
-   DnaSPversion= Ver. 6.12.03;\n\
-END;\n\
-".format(aln_fa_file_path, str_ntax, str_taxlabels, str_seq_len, str_matrix.rstrip(), str_sets)
+    with open(nex_out_path, 'w') as nex_handle:
+        nex_handle.write(s)
 
-with open(nex_out_path, 'w') as nex_handle:
-    nex_handle.write(s)
+
+# #################################################################################################################################################################################3.structure
+if args.inaln and args.grouplist and args.outfile1 and args.outfile2:
+
+    formatted_accession_seq_dict, int_ntax, str_seq_len = get_formatted_seq_dict(
+        aln_fa_file_path)
+    group_accession_dict, group_taxset_dict = geneflow_get_group_sets_dict(
+        group_list_file_path)
+
+    str_ntax = str(int_ntax)
+    str_matrix = ''
+    str_taxlabels = ''
+    for i in group_accession_dict.keys():  # A B C D E
+        # a组对应的登录号,无括号信息,因为分组文\文件里是范围,压根没写括号
+        acc_list = group_accession_dict[i]
+        for j in formatted_accession_seq_dict.keys():  # 键全为登录号,有括号
+            if j.split('(')[0] in acc_list:  # 表明属于这一组
+                str_taxlabels += ("'"+j+"'"+'\n')
+                str_matrix += ("'"+j+"'"+'   '+formatted_accession_seq_dict[j])
+    str_taxlabels = str_taxlabels.strip()
+    str_sets = ''
+    for k, v in group_taxset_dict.items():
+        str_sets += '   TaxSet {} = {};\n'.format(k, v)
+
+    # ######################################################生成id被排序的比对文件
+    with open(out_new_aln_fa, 'w') as out_handle:
+        for i in group_accession_dict.keys():
+            acc_list = group_accession_dict[i]  # 一组登录号
+            for j in formatted_accession_seq_dict.keys():  # 键有括号
+                if j.split('(')[0] in acc_list:  # 表明属于这一组
+                    out_handle.write('>'+j+'\n')
+                    out_handle.write(
+                        formatted_accession_seq_dict[j].strip()+'\n')
+
+    # ######################################################生成 第一列样品名  第二列分组名 文件
+
+    with open(new_group_list_path, 'w') as out_handle:
+        for i in group_accession_dict.keys():
+            acc_list = group_accession_dict[i]  # 一组登录号
+            for j in formatted_accession_seq_dict.keys():  # 键有括号
+                if j.split('(')[0] in acc_list:  # 表明属于这一组
+                    out_handle.write(j+'\t'+i+'\n')
+
 
 # ############################################################范例
 '''

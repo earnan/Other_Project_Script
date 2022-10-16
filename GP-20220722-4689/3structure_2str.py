@@ -9,12 +9,12 @@
 #           Time:   2022/09/02 15:04:54
 #  Last Modified:   2022/09/02 15:04:54
 #        Contact:   hi@arcsona.cn
-#        License:   Copyright (C) 2022
+#        License:   GNU General Public License v3.0
 #
 ##########################################################
 from Bio import SeqIO
 from Bio.Seq import Seq
-from icecream import ic
+#from icecream import ic
 import argparse
 import linecache
 import os
@@ -44,10 +44,7 @@ parser = argparse.ArgumentParser(
 \n\
 \npython3   3structure_2str.py\n\
 Function:\n\
-1.常规使用\n\
-1.1 -i [ ] -o [ ] \n\
-2.其他使用\n\
-2.1 -i [ ] -o [ ] \n\
+1. -i1 [aln fa ]  -i2 [group list ]  -o1 [new aln fa ]   -o2 [new group list ]\n\
 \n\
 ##########################################################\n\
 Path: E:\OneDrive\jshy信息部\Script\Other_Project_Script\GP-20220722-4689\3structure_2str.py\n\
@@ -59,22 +56,23 @@ Version: 1.0\n\
 optional = parser.add_argument_group('可选项')
 required = parser.add_argument_group('必选项')
 optional.add_argument(
-    '-i', '--infile', metavar='[infile]', help='infile', type=str, default='E:/', required=False)
+    '-i1', '--infile1', metavar='[aln fa]', help='老师提供的比对好的文件', type=str, default='F:\\结果\\1_21个牦牛群体_基因交流值\\21_sets_seq.aln.fas', required=False)
 optional.add_argument(
-    '-o', '--outfile', metavar='[outfile]', help='outfile', type=str, default='F:/', required=False)
-optional.add_argument('-c1', '--flag1', help='run step 1?默认是,不运行则-c1',
-                      action='store_false', required=False)
-optional.add_argument('-c2', '--flag2', help='run step 2?默认否,运行则-c2 ',
-                      action='store_true', required=False)
+    '-i2', '--infile2', metavar='[group list]', help='老师提供的分组', type=str, default='F:\\结果\\1_21个牦牛群体_基因交流值\\group.list', required=False)
+optional.add_argument(
+    '-o1', '--outfile1', metavar='[new_aln_fa]', help='样品按名字排序后的比对文件', type=str, default='F:\\4689\\result\\3_Structure\\sortesd_21_sets_seq.aln.fas', required=False)
+optional.add_argument(
+    '-o2', '--outfile2', metavar='[new group list]', help='生成文件,第一列样品名  第二列分组名', type=str, default='F:\\Project\\4689\\result\\1_gene_flow\\group_list.txt', required=False)
 optional.add_argument('-h', '--help', action='help', help='[help_information]')
 args = parser.parse_args()
 
-aln_fa_file_path = 'F:\\4689\\result\\1_gene_flow\\21_sets_seq.aln.fas'
-group_list_file_path = 'F:\\4689\\result\\1_gene_flow\\group_mapping.txt'
-out_new_aln_fa = 'F:\\4689\\result\\3_Structure\\sortesd_21_sets_seq.aln.fas'
+aln_fa_file_path = args.infile1
+group_list_file_path = args.infile2
+out_new_aln_fa = args.outfile1
+new_group_list_path = args.outfile2
 
 
-def format_fasta(seq, num):  # 格式化字符串
+def format_fasta(seq, num):  # 格式化字符串,
     format_seq = ""
     for index, char in enumerate(seq):
         format_seq += char
@@ -181,7 +179,7 @@ def geneflow_get_group_sets_dict(group_list_file_path):
     return group_accession_dict, group_taxset_dict
 
 
-# ###############################################################################################主函数
+# ###############################################################################################
 formatted_accession_seq_dict, int_ntax, str_seq_len = get_formatted_seq_dict(
     aln_fa_file_path)
 group_accession_dict, group_taxset_dict = geneflow_get_group_sets_dict(
@@ -211,6 +209,12 @@ with open(out_new_aln_fa, 'w') as out_handle:
                 out_handle.write('>'+j+'\n')
                 out_handle.write(formatted_accession_seq_dict[j].strip()+'\n')
 
-# #########################################################
-# with open()
-ic(group_taxset_dict)
+
+# #########################################################生成 第一列样品名  第二列分组名 文件
+
+with open(new_group_list_path, 'w') as out_handle:
+    for i in group_accession_dict.keys():
+        acc_list = group_accession_dict[i]  # 一组登录号
+        for j in formatted_accession_seq_dict.keys():  # 键有括号
+            if j.split('(')[0] in acc_list:  # 表明属于这一组
+                out_handle.write(j+'\t'+i+'\n')
